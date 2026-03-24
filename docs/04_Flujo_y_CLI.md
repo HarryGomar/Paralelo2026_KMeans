@@ -1,8 +1,6 @@
-# Flujo de Ejecucion y CLI
-
 ## Objetivo de esta nota
 
-Explicar como viaja la informacion desde la linea de comandos hasta los artefactos de salida.
+Explicar como viaja la información desde la linea de comandos hasta los artefactos de salida.
 
 ## Flujo general
 
@@ -134,10 +132,6 @@ dim,N,k,mode,threads,run_idx,iters,kernel_ms,total_ms
 
 ## Relacion con los scripts
 
-- `run_experiments.sh` llama repetidamente al binario
+- `run_experiments.ps1` llama repetidamente al binario en Windows
+- `run_experiments.sh` sigue disponible para Linux/WSL
 - `plot_speedup.py` consume el CSV experimental generado por `main.c`
-
-## Lecturas relacionadas
-
-- [[05_Datos_CSV_y_Scripts]]
-- [[06_Experimentos_y_Resultados]]

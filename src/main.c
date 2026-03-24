@@ -27,6 +27,7 @@ typedef struct {
   int run_idx;
 } app_config_t;
 
+// Muestra la interfaz de linea de comandos.
 static void usage(FILE *out) {
   fprintf(out,
           "Uso:\n"
@@ -48,6 +49,7 @@ static void usage(FILE *out) {
           "  -h, --help             Mostrar ayuda\n");
 }
 
+// Define defaults razonables para evitar ramas especiales mas adelante.
 static void app_config_init(app_config_t *cfg) {
   memset(cfg, 0, sizeof(*cfg));
   cfg->params.max_iters = 300;
@@ -56,6 +58,7 @@ static void app_config_init(app_config_t *cfg) {
   cfg->mode = KM_MODE_SERIAL;
 }
 
+// Helpers de parseo estrictos: aceptan solo numeros completos validos.
 static int parse_int(const char *text, int *out) {
   char *end = NULL;
   long value;
@@ -96,6 +99,7 @@ static int parse_double(const char *text, double *out) {
   return 0;
 }
 
+// Traduce el texto del CLI al enum interno.
 static int parse_mode(const char *text, km_mode_t *mode) {
   if (!text || !mode) return 1;
   if (strcmp(text, "serial") == 0) {
@@ -123,6 +127,7 @@ static int file_is_empty(const char *path) {
   return st.st_size == 0;
 }
 
+// Agrega una fila por corrida y crea el header solo cuando hace falta.
 static int append_experiment_row(const char *path, int dim, size_t n, int k, km_mode_t mode,
                                  int threads, int run_idx, int iters, double kernel_ms,
                                  double total_ms, char *errbuf, size_t errbuf_sz) {
@@ -148,6 +153,7 @@ static int append_experiment_row(const char *path, int dim, size_t n, int k, km_
   return 0;
 }
 
+// Convierte argv en una configuracion validada.
 static int parse_options(int argc, char **argv, app_config_t *cfg) {
   static struct option long_opts[] = {
       {"input", required_argument, NULL, 0},
@@ -257,6 +263,7 @@ static int parse_options(int argc, char **argv, app_config_t *cfg) {
   return 0;
 }
 
+// Normaliza la cantidad de hilos para que el resto del programa no distinga casos.
 static int resolve_threads(app_config_t *cfg) {
   if (cfg->mode != KM_MODE_OMP) {
     cfg->threads = 1;
@@ -273,6 +280,7 @@ static int resolve_threads(app_config_t *cfg) {
   return 0;
 }
 
+// Selecciona el backend sin duplicar logica en `main`.
 static int run_kmeans_mode(const app_config_t *cfg, const km_dataset_t *ds, int *assignments,
                            double *centroids, km_stats_t *stats) {
   if (cfg->mode == KM_MODE_OMP) {
@@ -281,6 +289,7 @@ static int run_kmeans_mode(const app_config_t *cfg, const km_dataset_t *ds, int 
   return km_run_serial(ds, &cfg->params, assignments, centroids, stats);
 }
 
+// Centraliza la salida opcional de resultados.
 static int write_outputs(const app_config_t *cfg, const km_dataset_t *ds, const int *assignments,
                          const double *centroids, char *errbuf, size_t errbuf_sz) {
   if (csv_write_assignments(cfg->out_path, ds, assignments, errbuf, errbuf_sz) != 0) {
@@ -317,6 +326,7 @@ int main(int argc, char **argv) {
   if (rc < 0) return 2;
 
   resolve_threads(&cfg);
+  // El tiempo total incluye lectura, computo y escritura.
   total_start = now_ms();
 
   if (csv_read_points(cfg.input_path, cfg.dim_hint, &ds, errbuf, sizeof(errbuf)) != 0) {
@@ -337,6 +347,7 @@ int main(int argc, char **argv) {
     goto cleanup;
   }
 
+  // El tiempo de kernel mide solo la parte numerica de K-means.
   kernel_start = now_ms();
   if (run_kmeans_mode(&cfg, &ds, assignments, centroids, &stats) != 0) {
     fprintf(stderr, "Error: fallo en kmeans\n");
@@ -369,6 +380,7 @@ int main(int argc, char **argv) {
   rc = 0;
 
 cleanup:
+  // Punto unico de limpieza para simplificar el manejo de errores.
   free(assignments);
   free(centroids);
   km_dataset_free(&ds);

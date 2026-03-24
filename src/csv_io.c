@@ -13,6 +13,7 @@ enum {
   CSV_INITIAL_CAP = 1024,
 };
 
+// Helpers pequenos para propagar errores legibles sin duplicar codigo.
 static void set_err(char *errbuf, size_t errbuf_sz, const char *msg) {
   if (!errbuf || errbuf_sz == 0) return;
   snprintf(errbuf, errbuf_sz, "%s", msg);
@@ -34,6 +35,7 @@ static int dataset_is_valid(const km_dataset_t *ds) {
   return ds && ds->points && ds->n > 0 && is_supported_dim(ds->dim);
 }
 
+// Limpia saltos de linea y espacios al final para simplificar el parser.
 static void rstrip(char *s) {
   size_t n = strlen(s);
   while (n > 0 && (s[n - 1] == '\n' || s[n - 1] == '\r' || isspace((unsigned char)s[n - 1]))) {
@@ -42,10 +44,10 @@ static void rstrip(char *s) {
   }
 }
 
-// Returns:
-//  1: parsed successfully and set *nvals
-//  0: first token is non-numeric (useful for optional headers)
-// -1: malformed CSV line
+// Retorna:
+//  1 si parseo una fila numerica valida.
+//  0 si la primera celda no es numerica; se usa para admitir headers.
+// -1 si la fila tiene formato invalido.
 static int parse_numeric_fields(const char *line, double values[CSV_MAX_DIM], int *nvals) {
   const char *cursor = line;
   int count = 0;
@@ -79,6 +81,7 @@ static int parse_numeric_fields(const char *line, double values[CSV_MAX_DIM], in
   return 1;
 }
 
+// El staging crece en bloques y luego se compacta al tamano exacto.
 static int grow_staging_points(double **points, size_t *cap, char *errbuf, size_t errbuf_sz) {
   const size_t new_cap = (*cap == 0) ? CSV_INITIAL_CAP : (*cap * 2);
   double *grown =
@@ -93,6 +96,7 @@ static int grow_staging_points(double **points, size_t *cap, char *errbuf, size_
   return 0;
 }
 
+// Abre archivo normal o stdout cuando el path es "-".
 static FILE *open_output(const char *path, char *errbuf, size_t errbuf_sz) {
   FILE *f;
 
@@ -119,6 +123,7 @@ static int write_centroids_header(FILE *f, int dim) {
   return fprintf(f, (dim == 2) ? "cluster,cx,cy\n" : "cluster,cx,cy,cz\n") < 0;
 }
 
+// Carga el CSV en un buffer temporal de 3 columnas y luego lo compacta a 2D o 3D.
 int csv_read_points(const char *path, int dim_hint, km_dataset_t *out, char *errbuf,
                     size_t errbuf_sz) {
   FILE *f = NULL;
@@ -188,6 +193,7 @@ int csv_read_points(const char *path, int dim_hint, km_dataset_t *out, char *err
 
     if (n == cap && grow_staging_points(&staging, &cap, errbuf, errbuf_sz) != 0) goto fail;
 
+    // El staging siempre reserva espacio extra para simplificar el crecimiento.
     staging[n * CSV_MAX_DIM + 0] = values[0];
     staging[n * CSV_MAX_DIM + 1] = values[1];
     staging[n * CSV_MAX_DIM + 2] = (dim == 3) ? values[2] : 0.0;
@@ -208,6 +214,7 @@ int csv_read_points(const char *path, int dim_hint, km_dataset_t *out, char *err
     goto fail;
   }
 
+  // Copia solo las columnas reales para dejar el dataset en formato denso.
   for (size_t i = 0; i < n; i++) {
     memcpy(&compact[i * (size_t)dim], &staging[i * CSV_MAX_DIM], (size_t)dim * sizeof(*compact));
   }
@@ -233,6 +240,7 @@ void km_dataset_free(km_dataset_t *ds) {
   ds->dim = 0;
 }
 
+// Emite una fila por punto y conserva las coordenadas originales.
 int csv_write_assignments(const char *path, const km_dataset_t *ds, const int *assignments,
                           char *errbuf, size_t errbuf_sz) {
   FILE *f;
@@ -272,6 +280,7 @@ int csv_write_assignments(const char *path, const km_dataset_t *ds, const int *a
   return 0;
 }
 
+// Emite una fila por centroide con su indice de cluster.
 int csv_write_centroids(const char *path, int dim, int k, const double *centroids,
                         char *errbuf, size_t errbuf_sz) {
   FILE *f;

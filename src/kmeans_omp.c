@@ -1,5 +1,6 @@
 #include "kmeans_core.h"
 
+#include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -7,51 +8,84 @@
 #include <omp.h>
 #endif
 
+#ifdef _WIN32
+#include <malloc.h>
+#endif
+
 typedef struct {
+
   int threads;
   size_t sums_stride;
   size_t counts_stride;
   double *thread_sums;
   int *thread_counts;
+
 } km_omp_ctx_t;
 
+// Redondea cada buffer para dejar espacio de padding entre hilos.
 static size_t km_round_up(size_t value, size_t multiple) {
   if (multiple == 0) return value;
+
   const size_t rem = value % multiple;
+
   return (rem == 0) ? value : (value + multiple - rem);
 }
 
+// Reserva memoria alineada para reducir falsos compartidos y mejorar acceso SIMD/cache.
 static void *km_aligned_calloc(size_t count, size_t elem_size, size_t alignment) {
+  
   if (count == 0 || elem_size == 0) return NULL;
   const size_t bytes = count * elem_size;
   const size_t padded = km_round_up(bytes, alignment);
-  void *ptr = aligned_alloc(alignment, padded);
-  if (!ptr) return NULL;
-  memset(ptr, 0, padded);
-  return ptr;
+
+  #ifdef _WIN32
+    void *ptr = _aligned_malloc(padded, alignment);
+  #else
+    void *ptr = aligned_alloc(alignment, padded);
+  #endif
+    if (!ptr) return NULL;
+    memset(ptr, 0, padded);
+    return ptr;
+
 }
 
+static void km_aligned_free(void *ptr) {
+#ifdef _WIN32
+  _aligned_free(ptr);
+#else
+  free(ptr);
+#endif
+}
+
+#ifndef _OPENMP
+// Permite compilar el mismo archivo sin openmp y caer en la ruta escalar.
 static int km_assign_points_fallback(const km_dataset_t *ds, int k, const double *centroids,
                                      int *assignments, km_accum_t *accum) {
   return km_assign_points_scalar(ds, k, centroids, assignments, accum);
 }
+#endif
 
+// Cada hilo acumula en buffers privados; luego se hace una reduccion manual.
 static int km_assign_points_omp(const km_dataset_t *ds, int k, const double *centroids,
-                                int *assignments, km_accum_t *accum, void *ctx_ptr) {
+                                int *assignments, km_accum_t *accum, void *ctx_ptr) 
+{
   km_omp_ctx_t *ctx = (km_omp_ctx_t *)ctx_ptr;
   if (!ctx || !ctx->thread_sums || !ctx->thread_counts) return -1;
 
   memset(ctx->thread_sums, 0,
          (size_t)ctx->threads * ctx->sums_stride * sizeof(*ctx->thread_sums));
+         
   memset(ctx->thread_counts, 0,
          (size_t)ctx->threads * ctx->counts_stride * sizeof(*ctx->thread_counts));
 
   int changed = 0;
 
+/// Aqui lo marca como no usado. Es problema de VS code. No sabe si OpenMP esta definido o no. En realidad si lo esta, pero el intellisense no lo detecta.
 #ifdef _OPENMP
 #pragma omp parallel num_threads(ctx->threads) reduction(+ : changed)
   {
     const int tid = omp_get_thread_num();
+    // Los strides ya incluyen padding para desacoplar regiones vecinas.
     double *local_sums = &ctx->thread_sums[(size_t)tid * ctx->sums_stride];
     int *local_counts = &ctx->thread_counts[(size_t)tid * ctx->counts_stride];
     int local_changed = 0;
@@ -80,6 +114,7 @@ static int km_assign_points_omp(const km_dataset_t *ds, int k, const double *cen
   memset(accum->sums, 0, (size_t)k * (size_t)ds->dim * sizeof(*accum->sums));
   memset(accum->counts, 0, (size_t)k * sizeof(*accum->counts));
 
+  // Fusiona los acumuladores privados en el acumulador global de la iteracion.
   for (int t = 0; t < ctx->threads; t++) {
     const double *local_sums = &ctx->thread_sums[(size_t)t * ctx->sums_stride];
     const int *local_counts = &ctx->thread_counts[(size_t)t * ctx->counts_stride];
@@ -96,6 +131,7 @@ static int km_assign_points_omp(const km_dataset_t *ds, int k, const double *cen
   return changed;
 }
 
+// Backend OpenMP: prepara buffers por hilo y reutiliza el mismo bucle central.
 int km_run_omp(const km_dataset_t *ds, const km_params_t *params, int threads,
                int *assignments, double *centroids, km_stats_t *stats) {
   if (km_validate_problem(ds, params) != 0) return 1;
@@ -122,8 +158,8 @@ int km_run_omp(const km_dataset_t *ds, const km_params_t *params, int threads,
       (int *)km_aligned_calloc((size_t)threads * ctx.counts_stride, sizeof(*ctx.thread_counts), 64);
   if (!ctx.thread_sums || !ctx.thread_counts) {
     km_accum_free(&accum);
-    free(ctx.thread_sums);
-    free(ctx.thread_counts);
+    km_aligned_free(ctx.thread_sums);
+    km_aligned_free(ctx.thread_counts);
     return 1;
   }
 
@@ -131,7 +167,7 @@ int km_run_omp(const km_dataset_t *ds, const km_params_t *params, int threads,
                                km_assign_points_omp, &ctx);
 
   km_accum_free(&accum);
-  free(ctx.thread_sums);
-  free(ctx.thread_counts);
+  km_aligned_free(ctx.thread_sums);
+  km_aligned_free(ctx.thread_counts);
   return rc;
 }

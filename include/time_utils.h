@@ -1,5 +1,5 @@
 #pragma once
 
-// Returns milliseconds from a monotonic clock.
+// Tiempo monotono en milisegundos para medir duraciones.
 double now_ms(void);
 

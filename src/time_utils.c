@@ -2,6 +2,7 @@
 
 #include <time.h>
 
+// Usa un reloj monotono para que cambios del reloj del sistema no afecten las mediciones.
 double now_ms(void) {
   struct timespec ts;
   clock_gettime(CLOCK_MONOTONIC, &ts);

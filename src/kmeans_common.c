@@ -6,6 +6,7 @@
 
 #include "rng.h"
 
+// Valida precondiciones comunes antes de entrar al algoritmo.
 int km_validate_problem(const km_dataset_t *ds, const km_params_t *params) {
   if (!ds || !ds->points || !params) return 1;
   if (ds->dim != 2 && ds->dim != 3) return 1;
@@ -14,6 +15,7 @@ int km_validate_problem(const km_dataset_t *ds, const km_params_t *params) {
   return 0;
 }
 
+// Reserva los acumuladores reutilizados en cada iteracion.
 int km_accum_init(km_accum_t *accum, int k, int dim) {
   if (!accum || k <= 0 || (dim != 2 && dim != 3)) return 1;
 
@@ -35,6 +37,8 @@ void km_accum_free(km_accum_t *accum) {
   accum->counts = NULL;
 }
 
+// Toma k puntos distintos del dataset como centroides iniciales.
+// La seleccion se hace sin reemplazo para evitar duplicados de arranque.
 int km_init_centroids(const km_dataset_t *ds, int k, uint64_t *rng_state, double *centroids) {
   if (!ds || !ds->points || !rng_state || !centroids) return 1;
   if (ds->dim != 2 && ds->dim != 3) return 1;
@@ -62,11 +66,13 @@ int km_init_centroids(const km_dataset_t *ds, int k, uint64_t *rng_state, double
   return 0;
 }
 
+// Si un cluster queda vacio, lo recoloca sobre un punto real aleatorio.
 static void km_reinit_empty_cluster(const km_dataset_t *ds, uint64_t *rng_state, double *centroid) {
   const size_t idx = (size_t)(rng_next_u64(rng_state) % (uint64_t)ds->n);
   memcpy(centroid, &ds->points[idx * (size_t)ds->dim], (size_t)ds->dim * sizeof(*centroid));
 }
 
+// Recalcula centroides y devuelve el mayor desplazamiento de la iteracion.
 double km_update_centroids(const km_dataset_t *ds, int k, uint64_t *rng_state,
                            const double *sums, const int *counts, double *centroids) {
   double max_shift = 0.0;
@@ -96,6 +102,7 @@ double km_update_centroids(const km_dataset_t *ds, int k, uint64_t *rng_state,
   return max_shift;
 }
 
+// Version escalar de la fase asignacion + acumulacion.
 int km_assign_points_scalar(const km_dataset_t *ds, int k, const double *centroids,
                             int *assignments, km_accum_t *accum) {
   memset(accum->sums, 0, (size_t)k * (size_t)ds->dim * sizeof(*accum->sums));
@@ -118,6 +125,7 @@ int km_assign_points_scalar(const km_dataset_t *ds, int k, const double *centroi
   return changed;
 }
 
+// Bucle comun del algoritmo: asigna, actualiza y corta por estabilidad o tolerancia.
 int km_run_kmeans(const km_dataset_t *ds, const km_params_t *params, int *assignments,
                   double *centroids, km_stats_t *stats, km_accum_t *accum,
                   km_assign_fn assign_points, void *assign_ctx) {
@@ -141,6 +149,7 @@ int km_run_kmeans(const km_dataset_t *ds, const km_params_t *params, int *assign
 
     max_shift = km_update_centroids(ds, params->k, &rng_state, accum->sums, accum->counts,
                                     centroids);
+    // Converge si no cambia ninguna asignacion o si el movimiento residual es pequeno.
     if (changed == 0 || max_shift < params->tol) {
       iters++;
       break;

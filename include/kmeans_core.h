@@ -7,7 +7,7 @@ typedef struct {
   int *counts;
 } km_accum_t;
 
-// Backend hook for the assignment+accumulation phase.
+// Contrato comun para la fase "asignar puntos + acumular sumas".
 typedef int (*km_assign_fn)(const km_dataset_t *ds, int k, const double *centroids,
                             int *assignments, km_accum_t *accum, void *ctx);
 
@@ -20,6 +20,7 @@ static inline double km_dist2(const double *point, const double *centroid, int d
   return acc;
 }
 
+// Busca el centroide mas cercano en distancia euclidiana al cuadrado.
 static inline int km_find_nearest_centroid(const double *point, const double *centroids, int k,
                                            int dim) {
   int best = 0;
@@ -44,7 +45,7 @@ double km_update_centroids(const km_dataset_t *ds, int k, uint64_t *rng_state,
 int km_assign_points_scalar(const km_dataset_t *ds, int k, const double *centroids,
                             int *assignments, km_accum_t *accum);
 
-// Shared K-means loop used by both serial and OpenMP backends.
+// Bucle principal compartido por serial y OpenMP.
 int km_run_kmeans(const km_dataset_t *ds, const km_params_t *params, int *assignments,
                   double *centroids, km_stats_t *stats, km_accum_t *accum,
                   km_assign_fn assign_points, void *assign_ctx);

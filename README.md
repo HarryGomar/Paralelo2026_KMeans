@@ -36,6 +36,18 @@ Genera:
 bin/kmeans
 ```
 
+En Windows nativo con PowerShell + MSYS2 UCRT64:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\build_windows.ps1
+```
+
+Genera:
+
+```text
+bin\kmeans.exe
+```
+
 ## Uso
 
 Serial:
@@ -73,16 +85,26 @@ El script experimental ejecuta la malla pedida por el proyecto:
 - hilos: `1`, `vcores/2`, `vcores`, `2*vcores`
 - repeticiones: `10`
 
-Ejecutar:
+Ejecutar en Linux/WSL:
 
 ```bash
 ./scripts/run_experiments.sh
+```
+
+Ejecutar en Windows nativo:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\run_experiments.ps1
 ```
 
 Artefactos:
 
 - `results/experiments.csv`
 - `results/system_info.txt`
+- `results/clusters_2d.csv`
+- `results/centroids_2d.csv`
+- `results/clusters_3d.csv`
+- `results/centroids_3d.csv`
 
 El script valida al final que el CSV tenga el numero esperado de filas y que cada configuracion
 aparezca exactamente `RUNS` veces.
