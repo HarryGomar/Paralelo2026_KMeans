@@ -302,8 +302,7 @@ def plot_runtime_overview(mean_rows: list[dict[str, object]], out_path: Path) ->
             color=PALETTE["navy"],
             label="Serial",
         )
-        omp_threads = sorted({int(row["threads"]) for row in rows if str(row["mode"]) == "omp"})
-        for idx, threads in enumerate(omp_threads):
+        for threads in (4, 8, 16):
             omp = sorted(
                 (row for row in rows if str(row["mode"]) == "omp" and int(row["threads"]) == threads),
                 key=lambda item: int(item["N"]),
@@ -313,7 +312,7 @@ def plot_runtime_overview(mean_rows: list[dict[str, object]], out_path: Path) ->
                 [float(r["kernel_ms_mean"]) for r in omp],
                 marker="o",
                 linewidth=2.3,
-                color=thread_color(threads, idx + 1),
+                color=THREAD_COLORS[threads],
                 label=f"OpenMP {threads} hilos",
             )
         style_axes(ax, f"Tiempo promedio del kernel en {dim}D", "Número de puntos", "Tiempo promedio (ms)")
@@ -495,14 +494,13 @@ def plot_paired_speedup_boxplots(paired_rows: list[dict[str, object]], out_path:
         rows = [row for row in paired_rows if int(row["dim"]) == dim]
         data = []
         labels = []
-        thread_values = sorted({int(row["threads"]) for row in rows})
-        for threads in thread_values:
+        for threads in (1, 4, 8, 16):
             values = [float(row["kernel_speedup_pair"]) for row in rows if int(row["threads"]) == threads]
             data.append(values)
             labels.append(str(threads))
         bp = ax.boxplot(data, tick_labels=labels, patch_artist=True, showfliers=True)
-        for idx, (patch, threads) in enumerate(zip(bp["boxes"], thread_values)):
-            patch.set_facecolor(thread_color(threads, idx))
+        for patch, threads in zip(bp["boxes"], (1, 4, 8, 16)):
+            patch.set_facecolor(THREAD_COLORS[threads])
             patch.set_alpha(0.75)
         style_axes(ax, f"Speedup emparejado por corrida en {dim}D", "Hilos", "Speedup por run_idx")
     fig.patch.set_facecolor(PALETTE["paper"])
@@ -537,8 +535,7 @@ def plot_paired_median_trends(robust_config_rows: list[dict[str, object]], out_p
     fig, axes = plt.subplots(1, 2, figsize=(14, 5.8), constrained_layout=True)
     for ax, dim in zip(axes, (2, 3)):
         rows = [row for row in robust_config_rows if int(row["dim"]) == dim]
-        thread_values = sorted({int(row["threads"]) for row in rows})
-        for idx, threads in enumerate(thread_values):
+        for threads in (1, 4, 8, 16):
             values = sorted(
                 (row for row in rows if int(row["threads"]) == threads),
                 key=lambda item: int(item["N"]),
@@ -553,10 +550,10 @@ def plot_paired_median_trends(robust_config_rows: list[dict[str, object]], out_p
                 marker="o",
                 linewidth=2.4,
                 markersize=6,
-                color=thread_color(threads, idx),
+                color=THREAD_COLORS[threads],
                 label=f"{threads} hilos",
             )
-            ax.fill_between(xs, q1, q3, color=thread_color(threads, idx), alpha=0.16)
+            ax.fill_between(xs, q1, q3, color=THREAD_COLORS[threads], alpha=0.16)
         style_axes(
             ax,
             f"Mediana emparejada e IQR en {dim}D",
