@@ -1,0 +1,18 @@
+# Build artifacts
+bin/
+build/
+*.o
+*.out
+*.log
+
+# Generated datasets and experiment outputs
+data/
+results/
+
+# Python cache
+__pycache__/
+
+# Editor/OS files
+.vscode/
+.idea/
+.DS_Store
