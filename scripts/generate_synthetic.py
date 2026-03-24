@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 import argparse
 import csv
-import math
 import random
 
 
@@ -15,6 +14,17 @@ def main() -> int:
     p.add_argument("--spread", type=float, default=10.0, help="Range for random cluster centers")
     p.add_argument("--out", required=True)
     args = p.parse_args()
+
+    if args.n <= 0:
+        raise SystemExit("--n must be > 0")
+    if args.k <= 0:
+        raise SystemExit("--k must be > 0")
+    if args.k > args.n:
+        raise SystemExit("--k cannot be greater than --n")
+    if args.std < 0.0:
+        raise SystemExit("--std must be >= 0")
+    if args.spread <= 0.0:
+        raise SystemExit("--spread must be > 0")
 
     rng = random.Random(args.seed)
     dim = args.dim
@@ -45,4 +55,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

@@ -2,7 +2,7 @@
 
 #include <stdint.h>
 
-// Simple reproducible RNG (xorshift64*).
+// Header-only reproducible RNG (xorshift64*).
 static inline uint64_t rng_next_u64(uint64_t *state) {
   uint64_t x = (*state == 0) ? 0x9e3779b97f4a7c15ULL : *state;
   x ^= x >> 12;
@@ -15,4 +15,3 @@ static inline uint64_t rng_next_u64(uint64_t *state) {
 static inline uint32_t rng_next_u32(uint64_t *state) {
   return (uint32_t)(rng_next_u64(state) >> 32);
 }
-

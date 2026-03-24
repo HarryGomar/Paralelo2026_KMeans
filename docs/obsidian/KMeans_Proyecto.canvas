@@ -1,0 +1,198 @@
+{
+  "nodes": [
+    {
+      "id": "6f0ad84f44ce9c17",
+      "type": "group",
+      "x": -80,
+      "y": -80,
+      "width": 760,
+      "height": 480,
+      "label": "Vision General",
+      "color": "4"
+    },
+    {
+      "id": "a1b2c3d4e5f67890",
+      "type": "file",
+      "x": 40,
+      "y": 20,
+      "width": 360,
+      "height": 280,
+      "file": "docs/obsidian/00_Indice.md"
+    },
+    {
+      "id": "b3c4d5e6f708192a",
+      "type": "file",
+      "x": 440,
+      "y": 20,
+      "width": 360,
+      "height": 280,
+      "file": "docs/obsidian/01_Arquitectura.md"
+    },
+    {
+      "id": "c4d5e6f708192a3b",
+      "type": "group",
+      "x": 760,
+      "y": -80,
+      "width": 860,
+      "height": 920,
+      "label": "Algoritmo y Paralelizacion",
+      "color": "5"
+    },
+    {
+      "id": "d5e6f708192a3b4c",
+      "type": "file",
+      "x": 860,
+      "y": 20,
+      "width": 340,
+      "height": 260,
+      "file": "docs/obsidian/02_Algoritmo_KMeans.md"
+    },
+    {
+      "id": "e6f708192a3b4c5d",
+      "type": "file",
+      "x": 1240,
+      "y": 20,
+      "width": 340,
+      "height": 260,
+      "file": "docs/obsidian/03_Paralelizacion_OpenMP.md"
+    },
+    {
+      "id": "f708192a3b4c5d6e",
+      "type": "file",
+      "x": 860,
+      "y": 340,
+      "width": 340,
+      "height": 240,
+      "file": "docs/obsidian/07_Modulos_y_Codigo.md"
+    },
+    {
+      "id": "08192a3b4c5d6e7f",
+      "type": "file",
+      "x": 1240,
+      "y": 340,
+      "width": 340,
+      "height": 240,
+      "file": "docs/obsidian/08_Decisiones_y_Riesgos.md"
+    },
+    {
+      "id": "192a3b4c5d6e7f80",
+      "type": "group",
+      "x": -80,
+      "y": 460,
+      "width": 760,
+      "height": 520,
+      "label": "Ejecucion, Datos y Experimentos",
+      "color": "3"
+    },
+    {
+      "id": "2a3b4c5d6e7f8091",
+      "type": "file",
+      "x": 40,
+      "y": 560,
+      "width": 320,
+      "height": 240,
+      "file": "docs/obsidian/04_Flujo_y_CLI.md"
+    },
+    {
+      "id": "3b4c5d6e7f8091a2",
+      "type": "file",
+      "x": 380,
+      "y": 560,
+      "width": 320,
+      "height": 240,
+      "file": "docs/obsidian/05_Datos_CSV_y_Scripts.md"
+    },
+    {
+      "id": "4c5d6e7f8091a2b3",
+      "type": "file",
+      "x": 210,
+      "y": 830,
+      "width": 340,
+      "height": 240,
+      "file": "docs/obsidian/06_Experimentos_y_Resultados.md"
+    },
+    {
+      "id": "5d6e7f8091a2b3c4",
+      "type": "text",
+      "x": 1680,
+      "y": 40,
+      "width": 360,
+      "height": 260,
+      "text": "# Como leer este canvas\n\n1. Empieza en el indice.\n2. Pasa a arquitectura.\n3. Sigue con algoritmo y paralelizacion.\n4. Baja a flujo, datos y experimentos.\n5. Cierra con modulos y decisiones de ingenieria.\n\nEste canvas sirve como mapa visual del proyecto completo."
+    }
+  ],
+  "edges": [
+    {
+      "id": "6e7f8091a2b3c4d5",
+      "fromNode": "a1b2c3d4e5f67890",
+      "fromSide": "right",
+      "toNode": "b3c4d5e6f708192a",
+      "toSide": "left",
+      "toEnd": "arrow",
+      "label": "entrada"
+    },
+    {
+      "id": "7f8091a2b3c4d5e6",
+      "fromNode": "b3c4d5e6f708192a",
+      "fromSide": "right",
+      "toNode": "d5e6f708192a3b4c",
+      "toSide": "left",
+      "toEnd": "arrow",
+      "label": "nucleo"
+    },
+    {
+      "id": "8091a2b3c4d5e6f7",
+      "fromNode": "d5e6f708192a3b4c",
+      "fromSide": "right",
+      "toNode": "e6f708192a3b4c5d",
+      "toSide": "left",
+      "toEnd": "arrow",
+      "label": "paralelizacion"
+    },
+    {
+      "id": "91a2b3c4d5e6f708",
+      "fromNode": "b3c4d5e6f708192a",
+      "fromSide": "bottom",
+      "toNode": "2a3b4c5d6e7f8091",
+      "toSide": "top",
+      "toEnd": "arrow",
+      "label": "flujo"
+    },
+    {
+      "id": "a2b3c4d5e6f70819",
+      "fromNode": "2a3b4c5d6e7f8091",
+      "fromSide": "right",
+      "toNode": "3b4c5d6e7f8091a2",
+      "toSide": "left",
+      "toEnd": "arrow",
+      "label": "datos"
+    },
+    {
+      "id": "b3c4d5e6f708192a",
+      "fromNode": "3b4c5d6e7f8091a2",
+      "fromSide": "bottom",
+      "toNode": "4c5d6e7f8091a2b3",
+      "toSide": "top",
+      "toEnd": "arrow",
+      "label": "resultados"
+    },
+    {
+      "id": "c4d5e6f708192a3b",
+      "fromNode": "e6f708192a3b4c5d",
+      "fromSide": "bottom",
+      "toNode": "08192a3b4c5d6e7f",
+      "toSide": "top",
+      "toEnd": "arrow",
+      "label": "trade-offs"
+    },
+    {
+      "id": "d5e6f708192a3b4c",
+      "fromNode": "d5e6f708192a3b4c",
+      "fromSide": "bottom",
+      "toNode": "f708192a3b4c5d6e",
+      "toSide": "top",
+      "toEnd": "arrow",
+      "label": "implementacion"
+    }
+  ]
+}

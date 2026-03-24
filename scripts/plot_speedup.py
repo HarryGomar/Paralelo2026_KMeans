@@ -45,12 +45,21 @@ def main() -> int:
     # Build speedup per (dim, N, k, threads): serial_mean / omp_mean
     speedup = defaultdict(dict)
     threads_set = set()
+    missing_serial = set()
     for (dim, N, k, mode, threads), tmean in means.items():
         if mode == "omp":
             threads_set.add(threads)
             s_key = (dim, N, k, "serial", 1)
             if s_key in means and tmean > 0:
                 speedup[(dim, N, k)][threads] = means[s_key] / tmean
+            else:
+                missing_serial.add((dim, N, k))
+
+    if missing_serial:
+        missing = ", ".join(f"(dim={dim}, N={N}, k={k})" for dim, N, k in sorted(missing_serial))
+        raise SystemExit(f"Missing serial baseline for: {missing}")
+    if not speedup:
+        raise SystemExit("No speedup data could be derived from the input CSV")
 
     threads_sorted = sorted(threads_set)
 
@@ -99,4 +108,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

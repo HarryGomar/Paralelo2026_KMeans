@@ -17,7 +17,6 @@ SRC := \
   src/main.c \
   src/csv_io.c \
   src/time_utils.c \
-  src/rng.c \
   src/kmeans_common.c \
   src/kmeans_serial.c \
   src/kmeans_omp.c
@@ -42,4 +41,3 @@ $(BUILD_DIR):
 
 clean:
 	rm -rf bin build
-

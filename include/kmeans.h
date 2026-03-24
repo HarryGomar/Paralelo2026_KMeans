@@ -27,11 +27,11 @@ typedef struct {
 int km_init_centroids(const km_dataset_t *ds, int k, uint64_t *rng_state, double *centroids);
 
 // Runs classic K-means (assignment + update) until convergence or max_iters.
-// `assignments` length ds->n, must be allocated by caller (initialized to -1 recommended).
+// `assignments` length ds->n, allocated by caller.
 // `centroids` length k*dim, output final centroids.
 int km_run_serial(const km_dataset_t *ds, const km_params_t *params, int *assignments,
                   double *centroids, km_stats_t *stats);
 
+// Runs the OpenMP backend using the exact number of threads requested by `threads`.
 int km_run_omp(const km_dataset_t *ds, const km_params_t *params, int threads,
                int *assignments, double *centroids, km_stats_t *stats);
-

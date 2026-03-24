@@ -1,4 +1,0 @@
-interface:
-  display_name: "Obsidian Code Canvas"
-  short_description: "Generate Obsidian Canvas maps from code"
-  default_prompt: "Create or update an Obsidian .canvas diagram that maps a source code repo: add file nodes and edges for includes/imports; keep IDs stable; validate JSON; prefer running scripts/code_to_canvas.py."
